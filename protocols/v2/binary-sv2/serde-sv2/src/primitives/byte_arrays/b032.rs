@@ -1,4 +1,5 @@
-use crate::{error::Error, primitives::GetSize};
+use crate::error::Error;
+use crate::primitives::GetSize;
 use alloc::vec::Vec;
 use core::convert::TryFrom;
 use serde::{de::Visitor, ser, ser::SerializeTuple, Deserialize, Deserializer, Serialize};
@@ -26,6 +27,16 @@ impl<'a> Inner<'a> {
             Self::Owned(v) => &v[..],
         }
     }
+    #[inline]
+    pub fn inner_as_ref(&'a self) -> &'a [u8] {
+        match self {
+            Self::Ref(v) => v,
+            Self::Owned(v) => &v[..],
+        }
+    }
+    
+    
+    
 }
 
 #[derive(Debug, PartialEq, Clone)]

@@ -105,10 +105,9 @@
 //! This protocol explicitly expects that upstream server software is able to manage the size of the
 //! hashing space correctly for its clients and can provide new jobs quickly enough.
 use binary_sv2::{B032, U256};
-use core::{
-    cmp::{Ord, PartialOrd},
-    convert::TryInto,
-};
+use core::cmp::{Ord, PartialOrd};
+use core::convert::TryInto;
+use binary_sv2::U24;
 
 extern crate alloc;
 mod close_channel;
@@ -124,11 +123,11 @@ mod submit_shares;
 mod update_channel;
 
 pub use close_channel::CloseChannel;
-pub use new_mining_job::{NewExtendedMiningJob, NewMiningJob};
-pub use open_channel::{
-    OpenExtendedMiningChannel, OpenExtendedMiningChannelSuccess, OpenMiningChannelError,
-    OpenStandardMiningChannel, OpenStandardMiningChannelSuccess,
-};
+pub use new_mining_job::NewExtendedMiningJob;
+pub use new_mining_job::NewMiningJob;
+pub use open_channel::OpenMiningChannelError;
+pub use open_channel::{OpenExtendedMiningChannel, OpenExtendedMiningChannelSuccess};
+pub use open_channel::{OpenStandardMiningChannel, OpenStandardMiningChannelSuccess};
 pub use reconnect::Reconnect;
 pub use set_custom_mining_job::{
     SetCustomMiningJob, SetCustomMiningJobError, SetCustomMiningJobSuccess,
@@ -137,9 +136,9 @@ pub use set_extranonce_prefix::SetExtranoncePrefix;
 pub use set_group_channel::SetGroupChannel;
 pub use set_new_prev_hash::SetNewPrevHash;
 pub use set_target::SetTarget;
-pub use submit_shares::{
-    SubmitSharesError, SubmitSharesExtended, SubmitSharesStandard, SubmitSharesSuccess,
-};
+pub use submit_shares::SubmitSharesExtended;
+pub use submit_shares::SubmitSharesStandard;
+pub use submit_shares::{SubmitSharesError, SubmitSharesSuccess};
 pub use update_channel::{UpdateChannel, UpdateChannelError};
 
 pub fn target_from_hr(_hr: f32) -> U256<'static> {
@@ -240,11 +239,7 @@ impl Ord for Target {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq)]
-/// Extranonce bytes which need to be added to the coinbase to form a fully valid submission:
-/// (full coinbase = coinbase_tx_prefix + extranonce_prefix + extranonce + coinbase_tx_suffix).
-/// The size of the provided extranonce MUST be equal to the negotiated extranonce size from
-/// channel opening.
+#[derive(Debug, Clone, Default)]
 pub struct Extranonce {
     head: u128,
     tail: u128,
@@ -266,6 +261,13 @@ impl<'a> From<Extranonce> for U256<'a> {
         inner.try_into().unwrap()
     }
 }
+// impl<'de> From<Extranonce> for U24 {
+//     fn from(v: Extranonce) -> Self {
+//         let mut inner = v.head.to_le_bytes().to_vec();
+//         inner.extend_from_slice(&v.tail.to_le_bytes());
+//         inner.try_into().unwrap()
+//     }
+// }
 
 impl<'a> From<B032<'a>> for Extranonce {
     fn from(v: B032<'a>) -> Self {

@@ -1,7 +1,9 @@
-use crate::{error::Error, primitives::FixedSize};
+use crate::error::Error;
+use crate::primitives::FixedSize;
 use alloc::boxed::Box;
 use core::convert::TryFrom;
 use serde::{de::Visitor, ser, Deserialize, Deserializer, Serialize};
+use crate::primitives::Vec;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Inner<'a> {
@@ -9,6 +11,23 @@ enum Inner<'a> {
     Owned(Box<[u8; 32]>),
 }
 
+enum Inner_as_ref<'a> {
+    Ref(&'a [u8]),
+    Owned(Box<[u8; 32]>),
+}
+
+impl<'a> Inner_as_ref<'a> {
+    #[inline]
+    pub fn inner_as_ref(&'a self) -> &'a [u8] {
+        match self {
+            Self::Ref(v) => v,
+            Self::Owned(v) => &v[..],
+        }
+    }
+    
+    
+    
+}
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct U256<'u>(Inner<'u>);
 
@@ -92,3 +111,21 @@ impl<'de: 'a, 'a> Deserialize<'de> for U256<'a> {
 impl<'a> FixedSize for U256<'a> {
     const FIXED_SIZE: usize = 32;
 }
+
+// use core::convert::TryInto;
+
+// impl TryFrom<usize> for U256 {
+//     type Error = crate::Error;
+
+//     fn try_from(v: usize) -> Result<Self, Self::Error> {
+//         let v: u32 = v
+//             .try_into()
+//             .map_err(|_| crate::Error::U24TooBig(u32::MAX))?;
+//         match v {
+//             0..=Self::MAX => Ok(Self(v)),
+//             _ => Err(crate::Error::U24TooBig(v)),
+//         }
+//     }
+// }
+
+
